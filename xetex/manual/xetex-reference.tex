@@ -1,0 +1,1176 @@
+% Copyright 2007-2011 Will Robertson
+% Copyright 2011 Karl Berry
+% Copyright 2013 Khaled Hosny
+%
+% This work may be distributed and/or modified under the
+% conditions of the LaTeX Project Public License, either version 1.3c
+% of this license or (at your option) any later version.
+% The latest version of this license is in
+%   http://www.latex-project.org/lppl.txt
+% and version 1.3 or later is part of all distributions of LaTeX
+% version 2005/12/01 or later.
+%
+% This work has the LPPL maintenance status `maintained'.
+%
+% The Current Maintainer of this work is Khaled Hosny.
+%
+% This work consists of the files xetex-reference.tex,
+% README.txt, and the derived file xetex-reference.pdf.
+
+\documentclass[12pt]{article}
+
+\suppressfontnotfounderror=1
+
+\makeatletter
+\def\@dotsep{999}
+
+\usepackage{fontspec,unicode-math}
+\setmainfont[Scale=MatchLowercase]{TeX Gyre Pagella}
+\setsansfont[Scale=MatchLowercase]{TeX Gyre Heros}
+\setmonofont[Scale=MatchLowercase, AutoFakeSlant=.2]{Inconsolata}
+\setmathfont{TeX Gyre Pagella Math}
+
+\usepackage{calc,fancyvrb,hyperref,refstyle,varioref,xcolor,hologo,xspace}
+\usepackage{geometry}
+%\geometry{screen,margin=3cm}
+
+\newcommand\tex    {\hologo{TeX}\xspace}
+\newcommand\xetex  {\hologo{XeTeX}\xspace}
+\newcommand\pdftex {\hologo{pdfTeX}\xspace}
+\newcommand\luatex {\hologo{LuaTeX}\xspace}
+\newcommand\latex  {\hologo{LaTeX}\xspace}
+\newcommand\context{\hologo{ConTeXt}\xspace}
+
+\hypersetup{
+  colorlinks,
+  linkcolor=black,
+  urlcolor=black,
+  pdfsubject={The XeTeX reference guide},
+  pdfauthor={Will Robertson \& Khaled Hosny},
+  pdfkeywords={xetex, tex, typesetting, unicode, math, opentype, graphite, aat}
+}
+
+\usepackage[it]{titlesec}
+\usepackage{enumitem}
+\setlist{nolistsep}
+
+\newenvironment{optdesc}
+  {\begin{description}[font=\ttfamily,style=nextline,leftmargin=1.5cm]}
+  {\end{description}}
+
+\newcommand\cmd{%
+  \noindent
+  \begin{trivlist}\item[]
+  \SaveVerb[%
+    aftersave={%
+      \begin{minipage}{\linewidth}
+        \parindent=2em\relax\noindent
+        \UseVerb{CMD}}]{CMD}}
+\edef\|{|}
+\DefineShortVerb{\|}
+\newcommand\xarg[1]{$\langle\hbox{\rmfamily\itshape #1}\rangle$}
+\def\<#1>{\xarg{#1}}
+\newcommand\oarg[1]{\texttt{[\,#1\,]}}
+\newcommand\desc[1]{\par\noindent\ignorespaces#1\par}
+\def\endcmd{%
+  \end{minipage}  
+  \end{trivlist}}
+
+\def\cs#1{\texttt{\textbackslash#1}}
+
+\newsavebox\verbatimbox
+\edef\examplefilename{\jobname.example}
+\newlength\exampleindent
+\setlength\exampleindent{1em}
+
+\newenvironment{example}
+  {\VerbatimEnvironment
+   \begin{VerbatimOut}{\examplefilename}}
+  {\end{VerbatimOut}
+   \typesetexample}
+   
+\newcommand\typesetexample{%
+  \begin{trivlist}\item[]
+  \vrule
+  \hspace{\exampleindent}
+  \begin{minipage}{\linewidth-\exampleindent-\exampleindent}
+    \textit{Example:}\par
+    \vspace{0.4\baselineskip}
+    \BVerbatimInput[fontsize=\small]{\examplefilename}\par
+    \vspace{0.4\baselineskip}
+    \color[rgb]{0.7,0,0}\input\examplefilename\relax
+  \end{minipage}\par
+  \end{trivlist}}
+
+\let\strong\textbf
+\newcommand\hlink[2]{\href{#1}{#2}\footnote{\url{#1}}}
+
+\let\latin\textit
+\def\eg{\latin{e.g.}}
+\def\ie{\latin{i.e.}}
+\def\Eg{\latin{E.g.}}
+\def\Ie{\latin{I.e.}}
+\def\etc{\@ifnextchar.{\latin{etc}}{\latin{etc.}\@}}
+
+\def\opteq{\unskip\,\textcolor{gray}{[\textcolor{black}{=}]}\,}
+
+\setlength\parskip{0pt}
+\setlength\parindent{2em}
+\raggedbottom
+
+\begin{document}
+\title{The \xetex reference guide}
+\author{Will Robertson \and Khaled Hosny}
+\maketitle
+
+\vfill 
+
+\section*{Introduction}
+
+This document serves to summarise additional features of \xetex without
+being so much as a ‘users’ guide. Note that much of the functionality
+addressed here is provided in abstracted form in various \latex
+packages and \context modules.
+
+The descriptions here should be a fairly exhaustive list of the new
+primitives and features of \xetex. Descriptions are still a little
+aenemic, however.
+
+\section*{License}
+
+This work, is distributed under the terms of the LaTeX Project Public License
+(\url{http://www.latex-project.org/lppl.txt}).
+
+This basically means you are free to re-distribute this file as you
+wish; you may also make changes to this file or use its contents for
+another purpose, in which case you should make it clear, by way of a
+name-change or some other means, that your changed version is a modified
+version of the original. Please read the license text for more detailed
+information.
+
+\vfill\vfill\vfill\null
+
+\newpage
+\tableofcontents
+
+\part{\xetex specifics}
+
+\section{The \cs{font} command}
+
+Traditionally, fonts were selected in \tex like this:
+|\font\1=|\xarg{tfm name} with various options possibly appended
+% harder to read without the extra space
+such as \ ‘| at 10pt|’ \ or \ ‘| scaled 1.2|’, with obvious meaning. This syntax
+still works, but it has been greatly extended in \xetex.
+
+The extended syntax looks schematically like this:
+
+{\centering
+ |\font\1="|\xarg{font identifier}\xarg{font options}|:|\xarg{font features}|"|
+ \xarg{\tex font options}\par}
+
+\noindent The \xarg{font identifier} is the only mandatory part of the
+above syntax.  If it is given in square brackets, (e.g.,
+|[lmroman10-regular]|), it is taken as a font file name.
+Without brackets, the name is looked up both as a file name and a system
+font name.
+When using a font name, the font is looked up through the operating
+system, using (except on Mac~OS~X) the |fontconfig| library.  Running
+|fc-list| should show you the font names available.  \Eg,
+\begin{quote}\small
+|\font\1="Liberation Serif"| \hfill \emph{look for OS-installed font}
+\end{quote}
+
+Fonts have many internal names, and XeTeX matches them in the following order:
+\vskip1ex
+\begin{itemize}
+  \item Full Name;
+  \item if the name has a hyphen, it is split into Family-Style pair then matched;
+  \item PostScript Name;
+  \item Family Name, if there is more than one match;
+  \begin{itemize}
+    \item look for font with “regular” bit set in OS/2 table, if no match;
+    \item look for font with style “Regular”, “Plain”, “Normal” or “Roman”, in that order.
+  \end{itemize}
+\end{itemize}
+\bigskip
+
+When using a file name, the |xdvipdfmx| driver must be used (this is the
+default). The current directory and the |texmf| trees are searched for
+files matching the name, or the path may be embedded in the font
+declaration, as usual with |kpathsea|. \Eg,
+\begin{quote}\small
+|\font\2="[lmroman10-regular]"| \hfill
+  {\em find |lmroman10-regular.otf| in any tree}
+|\font\3="[/myfonts/fp9r8a]"| \hfill
+  {\em look for |fp9r8a| only in |/myfonts/|}
+\end{quote}
+
+A file with either an |.otf|, |.ttf| or |.pfb| extension (in that order) will be found.  The
+extension can also be specified explicitly.
+If the file is a font collection (e.g., |.ttc| or |.dfont|), the index of the
+font can be specified using a colon followed by zero-based font index inside
+the square brackets. \Eg,
+\begin{quote}\small
+|\font\4="[myfont.ttc:1]"| \hfill {\em load the second font from |myfont.ttc| file}
+\end{quote}
+
+
+\subsection{Font options}
+
+\xarg{Font options} are only applicable when the font is selected
+through the operating system (\ie, without square brackets).  They may
+be any concatenation of the following:
+
+\begin{optdesc}
+\item[/B] Use the bold version of the selected font.
+\item[/I] Use the italic version of the selected font.
+\item[/BI] Use the bold italic version of the selected font.
+\item[/IB] Same as \texttt{/BI}.
+\item[/S=$x$] Use the version of the selected font corresponding to the
+optical size $x$\,pt.
+\item[/AAT] Explicitly use the AAT renderer (Mac~OS~X only).
+\item[/OT] Explicitly use the OpenType renderer (new in 0.9999).
+\item[/GR] Explicitly use the Graphite renderer.%
+           \footnote{\url{http://scripts.sil.org/cms/scripts/page.php?site_id=projects&item_id=graphite_home}}
+\item[/ICU] Explicitly use the OpenType renderer (deprecated since 0.9999).
+\end{optdesc}
+
+
+\subsection{Font features}
+
+The \xarg{font features} is a comma or semi-colon separated list
+activating or deactivating various OpenType, Graphite, or AAT font
+features, which will vary by font.  In contrast to font options,
+features work whether the font is selected by file name or through the
+operating system.
+
+The \xetex documentation files \path{aat-info.tex} and
+\path{opentype-info.tex} provide per-font lists of supported features.
+
+\subsubsection{Arbitrary OpenType, Graphite, or AAT features}
+
+OpenType font features are chosen with
+\hlink{http://www.microsoft.com/typography/otspec/featuretags.htm}{standard
+tags}. They may be either comma- or semicolon-separated, and prefixed
+with a |+| to turn them on and a |-| to turn them off, optionally followed
+by |=| and a 0-based index for selecting alternates from multiple
+alternates features (ignored for |-| prefixed tags).
+
+\begin{example}
+\font\liber="Linux Libertine O/I=5:+smcp" at 12pt
+\liber This is the OpenType font Linux Libertine in italic with small caps.
+\end{example}
+
+Varying depending on the language and script in use (see
+\secref[vref]{script}), a small number of OpenType features, if they
+exist, will be activated by default.
+
+\begin{example}
+\font\antt="Antykwa Torunska"         at 12pt \antt 0
+\font\antt="Antykwa Torunska:+aalt=0" at 12pt \antt 0
+\font\antt="Antykwa Torunska:+aalt=1" at 12pt \antt 0
+\font\antt="Antykwa Torunska:+aalt=2" at 12pt \antt 0
+\font\antt="Antykwa Torunska:+aalt=3" at 12pt \antt 0
+\font\antt="Antykwa Torunska:+aalt=4" at 12pt \antt 0
+\end{example}
+
+AAT font features and Graphite font features are specified by strings
+within each font rather than standardised tags. Therefore, even
+equivalent features between different fonts can have different names.
+
+\begin{example}
+\font\gra="Charis SIL/GR:Small Caps=True" at 12pt
+\gra This is the Graphite font Charis SIL with small caps.
+\end{example}
+
+\subsubsection{Options for all fonts}
+
+Some font features may be applied for any font. These are
+\begin{optdesc}
+\item[mapping=\textsl{<font map>}] 
+Uses the specified font mapping for this font. This uses the TECKit
+engine to transform unicode characters in the last-minute processing
+stage of the source. For example, |mapping=tex-text| will enable the
+classical mappings from ugly ascii |``---''| to proper typographical
+glyphs “—”, and so on.
+
+\item[color={\slshape RRGGBB}{[{\slshape TT}]}] 
+Triple pair of hex values to specify the colour in RGB space, with an
+optional value for the transparency.
+
+\item[letterspace=$x$] 
+Adds $x/S$ space between letters in words, where $S$ is the font size.
+
+\item[embolden=$x$]
+Increase the envelope of each glyph by the set amount (this makes the
+letters look ‘more bold’). $x=0$ corresponds to no change; $x=1.5$ is a
+good default value.
+
+\item[extend=$x$]
+Stretch each glyph horizontally by a factor of $x$ (i.e., $x=1$
+corresponds to no change).
+
+\item[slant=$x$]
+Slant each glyph by the set amount. $x=0$ corresponds to no change;
+$x=0.2$ is a good default value. The slant is given by $x=R/S$ where $R$
+is the displacement of the top edge of each glyph and $S$ is the point
+size.
+
+\end{optdesc}
+
+\subsubsection{OpenType script and language support}\seclabel{script}
+
+OpenType font features (and font behaviour) can vary by
+\hlink{http://www.microsoft.com/typography/otspec/scripttags.htm}{script}
+(‘alphabet’) and by
+\hlink{http://www.microsoft.com/typography/otspec/languagetags.htm}{language}.
+These are selected with four and three letter tags, respectively.
+
+\begin{optdesc}
+\item[script=\textsl{<script tag>}] Selects the font script.
+\item[language=\textsl{<lang tag>}] Selects the font language.
+\end{optdesc}
+
+\subsubsection{Multiple Master and Variable Axes AAT font support}
+
+\begin{optdesc}
+\item[weight=$x$] Selects the normalised font weight, $x$.
+\item[width=$x$] Selects the normalised font width, $x$.
+\item[optical size=$x$] Selects the optical size, $x$\,pt. Note the
+difference between the \texttt{/S} font option, which selects discrete
+fonts.
+\end{optdesc}
+
+\subsubsection{Vertical typesetting}
+\begin{optdesc}
+\item[vertical] 
+Enables glyph rotation in the output so vertical typesetting can be performed.
+\end{optdesc}
+
+\part{New commands}
+
+\section{Font primitives}
+
+\cmd|\XeTeXtracingfonts|
+\desc{If nonzero, reports where fonts are found in the log file.}
+\endcmd
+
+\cmd|\XeTeXfonttype|
+\xarg{font}
+\desc{
+  Expands to a number corresponding to which renderer is used for a
+  \xarg{font}:
+  \begin{optdesc}
+    \item [0] for \tex (a legacy TFM-based font);
+    \item [1] for AAT;
+    \item [2] for OpenType;
+    \item [3] for Graphite.
+  \end{optdesc}
+}
+\endcmd
+
+\begin{example}
+\newcommand\whattype[1]{%
+  \texttt{\fontname#1} is rendered by
+  \ifcase\XeTeXfonttype#1\TeX\or AAT\or OpenType\or Graphite\fi.\par}
+\font\1="cmr10"
+\font\2="Charis SIL"
+\font\3="Charis SIL/OT"
+\whattype\1 \whattype\2 \whattype\3
+\end{example}
+
+\cmd|\XeTeXfirstfontchar|
+\xarg{font}
+\desc{Expands to the code of the first character in \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXlastfontchar|
+\xarg{font}
+\desc{Expands to the code of the last character in \xarg{font}.}
+\endcmd
+
+\begin{example}
+\font\1="Charis SIL"\1
+The first character in Charis SIL is: "\char\XeTeXfirstfontchar\1"
+and the last character is: "\char\XeTeXlastfontchar\1".
+\end{example}
+
+\cmd|\XeTeXglyph|
+\xarg{glyph slot}
+\desc{Inserts the glyph in \xarg{glyph slot} of the current font. \strong{Font
+specific}, so will give different output for different fonts and
+possibly even different versions of the same font.}
+\endcmd
+
+\cmd|\XeTeXcountglyphs|
+\xarg{font}
+\desc{The count of the number of glyphs in the specified \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXglyphname|
+\xarg{font}
+\xarg{glyph slot}
+\desc{Expands to the name of the glyph in \xarg{glyph slot} of \xarg{font}.
+\strong{Font specific}, so will give different output for different fonts and
+possibly even different versions of the same font.}
+\endcmd
+
+\cmd|\XeTeXglyphindex|
+|"|\xarg{glyph name}|"| \xarg{space} \emph{or} \cs{relax}
+\desc{Expands to the glyph slot corresponding to the (possibly
+font specific) \xarg{glyph name} in the currently selected font. Only
+works for TrueType fonts (or TrueType-based OpenType fonts) at
+present. Use \texttt{fontforge} or similar to discover glyph names.}
+\endcmd
+
+\cmd|\XeTeXcharglyph|
+\xarg{char code} 
+\desc{Expands to the default glyph number of character \xarg{char code}
+in the current font, or 0 if the character is not available in the
+font.}
+\endcmd
+
+\begin{example}
+\font\1="Charis SIL"\1
+The glyph slot in Charis SIL for the Yen symbol is:
+    \the\XeTeXglyphindex"yen" . % the font-specific glyph name
+Or: \the\XeTeXcharglyph"00A5.   % the unicode character slot
+
+This glyph may be typeset with the font-specific glyph slot:
+\XeTeXglyph150, 
+or the unicode character slot:
+\char"00A5.
+\end{example}
+
+\cmd|\XeTeXglyphbounds|
+\xarg{edge} \xarg{glyph slot}
+\desc{Expands to a dimension corresponding to one of the bounds of a
+glyph, where \xarg{edge} is an integer from 1 to~4 indicating the
+left/top/right/bottom edge respectively, and \xarg{glyph slot} is an
+integer glyph index in the current font (only valid for non TFM-based
+fonts).
+
+The left and right measurements are the glyph sidebearings, measured
+‘inwards’ from the origin and advance respectively, so for a glyph that
+fits completely within its ‘cell’ they will both be positive; for a
+glyph that ‘overhangs’ to the left or right, they will be negative. The
+actual width of the glyph’s bounding box, therefore, is the character
+width (advance) minus both these sidebearings.
+
+The top and bottom measurements are measured from the baseline, like
+\tex’s height and depth; the height of the bounding box is the sum of
+these two dimensions.}
+\endcmd
+
+\begin{example}
+\def\shadebbox#1{%
+\leavevmode\rlap{%
+  \dimen0=\fontcharwd\font`#1%
+  \edef\gid{\the\XeTeXcharglyph`#1}%
+  \advance\dimen0 by -\XeTeXglyphbounds1 \gid
+  \advance\dimen0 by -\XeTeXglyphbounds3 \gid
+  \kern\XeTeXglyphbounds1 \gid
+  \special{color push rgb 1 1 0.66667}%
+  \vrule width \dimen0
+         height \XeTeXglyphbounds2 \gid
+         depth \XeTeXglyphbounds4 \gid
+  \special{color pop}%
+  \kern\XeTeXglyphbounds3 \gid}%
+  #1}
+	
+\noindent
+\font\x="Charis SIL/I" at 24pt \x
+\shadebbox{A} \shadebbox{W} \shadebbox{a} \shadebbox{f}
+\shadebbox{;} \shadebbox{*} \shadebbox{=}
+\end{example}
+
+\cmd|\XeTeXuseglyphmetrics|
+\desc{Counter to specify if the height and depth of characters are taken
+into account while typesetting ($\ge\mathtt1$). Otherwise ($<\mathtt1$),
+a single height and depth for the entire alphabet is used. Gives better
+output but is slower. Activated ($\ge\mathtt1$) by default.}
+\endcmd
+
+\begin{example}
+\XeTeXuseglyphmetrics=0 \fbox{a}\fbox{A}\fbox{j}\fbox{J} vs.
+\XeTeXuseglyphmetrics=1 \fbox{a}\fbox{A}\fbox{j}\fbox{J}
+\end{example}
+
+\subsection{OpenType fonts}
+
+\cmd|\XeTeXOTcountscripts|
+\xarg{font}
+\desc{Expands to the number of scripts in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXOTscripttag|
+\xarg{font}
+\xarg{integer, $n$}
+\desc{Expands to the $n$-th script tag of \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXOTcountlanguages|
+\xarg{font}
+\xarg{script tag}
+\desc{Expands to the number of languages in the script of \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXOTlanguagetag|
+\xarg{font}
+\xarg{script tag}
+\xarg{integer, $n$}
+\desc{Expands to the $n$-th language tag in the script of \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXOTcountfeatures|
+\xarg{font}
+\xarg{script tag}
+\xarg{language tag}
+\desc{Expands to the number of features in the language of a script of \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXOTfeaturetag|
+\xarg{font}
+\xarg{script tag}
+\xarg{language tag}
+\xarg{integer, $n$}
+\desc{Expands to the $n$-th feature tag in the language of a script of \xarg{font}.}
+\endcmd
+
+
+\subsection{AAT and Graphite fonts}
+
+\subsubsection{Features}
+
+\cmd|\XeTeXcountfeatures|
+\xarg{font}
+\desc{Expands to the number of features in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXfeaturecode|
+\xarg{font}
+\xarg{integer, $n$}
+\desc{Expands to the feature code for the $n$-th feature in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXfeaturename|
+\xarg{font}
+\xarg{feature code}
+\desc{Expands to the name corresponding to the \xarg{feature code} in
+the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXisexclusivefeature|
+\xarg{font}
+\xarg{feature code}
+\desc{Expands to a number greater than zero if the feature of a font is
+exclusive (can only take a single selector).}
+\endcmd
+
+\cmd|\XeTeXfindfeaturebyname|
+\xarg{font}
+\xarg{feature name}
+\desc{This command provides a method to query whether a feature name
+corresponds to a feature contained in the font. It represents an integer
+corresponding to the feature number used to access the feature
+numerically. If the feature does not exist, the integer is
+\texttt{-1}. Also see \cs{XeTeXfindselectorbyname}.}
+\endcmd
+
+\begin{example}
+\font\1="Charis SIL/GR" at 10pt
+\def\featname{Uppercase Eng alternates}
+The feature ‘\featname’ has index
+\the\XeTeXfindfeaturebyname\1 "\featname"\relax
+\end{example}
+
+\subsubsection{Feature selectors}
+
+\cmd|\XeTeXcountselectors|
+\xarg{font}
+\xarg{feature}
+\desc{Expands to the number of selectors in a \xarg{feature} of a \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXselectorcode|
+\xarg{font}
+\xarg{feature code}
+\xarg{integer, $n$}
+\desc{Expands to the selector code for the $n$-th selector in a
+\xarg{feature} of a \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXselectorname|
+\xarg{font}
+\xarg{feature code}
+\xarg{selector code}
+
+\desc{Expands to the name corresponding to the \xarg{selector code} of a
+feature of a \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXisdefaultselector|
+\xarg{font}
+\xarg{feature code}
+\xarg{selector code}
+\desc{Expands to a number greater than zero if the selector of a feature
+of a font is on by default.}
+\endcmd
+
+
+\cmd|\XeTeXfindselectorbyname|
+\xarg{font}
+\xarg{feature name}
+\xarg{selector name}
+\desc{This command provides a method to query whether a feature selector
+name corresponds to a selector of a specific feature contained in the
+font. It represents an integer corresponding to the selector number used
+to access the feature selector numerically. If the feature selector does
+not exist, the integer is \texttt{-1}.
+
+The indices given by this command and by \cs{XeTeXfindfeaturebyname} can
+be used in Graphite fonts to select font features directly (see example
+below). Alternatively, they can be used as a means of checking whether a
+feature/selector exists before attempting to use it.}
+\endcmd
+
+\begin{example}
+\font\1="Charis SIL/GR" at 10pt
+\def\featname{Uppercase Eng alternates}
+\newcount\featcount
+\featcount=\XeTeXfindfeaturebyname\1 "\featname"\relax
+
+\def\selecname{Large eng on baseline}
+\newcount\seleccount
+\seleccount=\XeTeXfindselectorbyname\1 \featcount "\selecname"\relax
+The feature selector ‘\selecname’ has index \the\seleccount
+
+\font\2="Charis SIL/GR:\featname=\selecname" at 10pt
+\font\3="Charis SIL/GR:\the\featcount=\the\seleccount" at 10pt
+
+Activating the feature: \1 Ŋ \2 Ŋ \3 Ŋ
+\end{example}
+
+\subsubsection{Variation axes}
+
+\cmd|\XeTeXcountvariations|
+\xarg{font}
+\desc{Expands to the number of variation axes in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXvariation|
+\xarg{font}
+\xarg{integer, $n$}
+\desc{Expands to the variation code for the $n$-th feature in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXvariationname|
+\xarg{font}
+\xarg{variation code}
+\desc{Expands to the name corresponding to the \xarg{feature code} in
+the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXvariationmin|
+\xarg{font}
+\xarg{variation code}
+\desc{Expands to the minimum value of the variation corresponding to the
+\xarg{variation code} in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXvariationmax|
+\xarg{font}
+\xarg{variation code}
+\desc{Expands to the maximum value of the variation corresponding to the
+\xarg{variation code} in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXvariationdefault|
+\xarg{font}
+\xarg{variation code}
+\desc{Expands to the default value of the variation corresponding to the
+\xarg{variation code} in the \xarg{font}.}
+\endcmd
+
+\cmd|\XeTeXfindvariationbyname|
+\xarg{font}
+\xarg{variation name}
+\desc{An integer corresponding to the internal index corresponding to
+the \xarg{variation name}. This index cannot be used directly but may be
+used to error-check that a specified variation name exists before
+attempting to use it.}
+\endcmd
+
+\subsection{Maths fonts}
+
+The primitives described following are extensions of \tex’s 8-bit primitives.
+
+In the following commands, \xarg{fam.} is a number (0–255) representing
+font to use in maths. \xarg{math type} is the 0–7 number corresponding
+to the type of math symbol; see a \tex reference for details.
+
+Before version 0.9999.0 the following primitives had |\XeTeX| prefix instead of
+|\U|, the old names are deprecated and will be removed in the future.
+
+\cmd|\Umathcode|
+\xarg{char slot}
+\opteq
+\xarg{math type}
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Defines a maths glyph accessible via an input character. Note that
+the input takes \emph{three} arguments unlike \tex’s \cs{mathcode}.}
+\endcmd
+
+\cmd|\Umathcodenum|
+\xarg{char slot}
+\opteq
+\xarg{math type/fam./glyph slot}
+\desc{Pure extension of \cs{mathcode} that uses a ‘bit-packed’ single
+number argument. Can also be used to extract the bit-packed mathcode
+number of the \xarg{char slot} if no assignment is given.}
+\endcmd
+
+\cmd|\Umathchar|
+\xarg{math type}
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Typesets the math character in the \xarg{glyph slot} in the family
+specified.}
+\endcmd
+
+\cmd|\Umathcharnum|
+\xarg{type/fam./glyph slot}
+\desc{Pure extension of \cs{mathchar} that uses a ‘bit-packed’ single
+number argument. Can also be used to extract the bit-packed mathcode
+number of the \xarg{char slot} if no assignment is given.}
+\endcmd
+
+\cmd|\Umathchardef|
+\xarg{control sequence}
+\opteq
+\xarg{math type}
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Defines a maths glyph accessible via a control sequence.}
+\endcmd
+
+\cmd|\Umathcharnumdef|
+\xarg{control sequence}
+\opteq
+\xarg{type/fam./glyph slot}
+\desc{Defines a control sequence for accessing a maths glyph using the
+‘bit-packed’ number output by, e.g., \cs{Umathcodenum}. This would
+be used to replace legacy code such as
+\cs{mathchardef}\cs{foo}\texttt{=}\cs{mathcode}\texttt{`}\cs{\-}.}
+\endcmd
+
+\cmd|\Udelcode|
+\xarg{char slot}
+\opteq
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Defines a delimiter glyph accessible via an input character.}
+\endcmd
+
+\cmd|\Udelcodenum|
+\xarg{char slot}
+\opteq
+\xarg{fam./glyph slot}
+\desc{Pure extension of \cs{delcode} that uses a ‘bit-packed’ single
+number argument. Can also be used to extract the bit-packed delcode
+number of the \xarg{char slot} if no assignment is given.}
+\endcmd
+
+\cmd|\Udelimiter|
+\xarg{math type}
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Typesets the delimiter in the \xarg{glyph slot} in the family
+specified of either \xarg{math type} 4 (opening) or 5 (closing).}
+\endcmd
+
+\cmd|\Umathaccent|
+\oarg{keyword}
+\xarg{math type}
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Typesets the math accent character in the \xarg{glyph slot} in the
+family specified. Starting from version 0.9998, \cs{Umathaccent} accepts
+optional keyword:\medskip
+\begin{optdesc}
+\item[fixed] Don’t stretch the accent, the default is to stretch it:
+             $\widehat{M}$ vs $\hat{M}$.
+\item[bottom] Place the accent below its base. Can be followed by the
+             \texttt{fixed} keyword.
+\end{optdesc}}
+\endcmd
+
+\cmd|\Uradical|
+\xarg{fam.}
+\xarg{glyph slot}
+\desc{Typesets the radical in the \xarg{glyph slot} in the family specified.}
+\endcmd
+
+\section{Character classes}
+
+The idea behind character classes is to define a boundary where tokens
+can be added to the input stream without explicit markup. It was
+originally intended to add glue around punctuation to effect correct
+Japanese typesetting. This feature can also be used to adjust space
+around punctuation for European traditions. The general nature of this
+feature, however, lends it to several other useful applications
+including automatic font switching when small amounts of another
+language (in another script) is present in the text.
+
+\cmd|\XeTeXinterchartokenstate|
+\desc{Counter. If positive, enables the character classes functionality.}
+\endcmd
+
+\cmd|\newXeTeXintercharclass|
+\xarg{control sequence}
+\desc{Allocates a new interchar class and assigns it to the
+\xarg{control sequence} argument.}
+\endcmd
+
+\cmd|\XeTeXcharclass|
+\xarg{char slot}
+\opteq
+\xarg{interchar class}
+\desc{Assigns a class corresponding to \xarg{interchar class} (range
+0–255) to a \xarg{char slot}. Most characters are class 0 by
+default. Class 1 is for CJK ideographs, classes 2 and 3 are CJK
+punctuation. The boundary of a text string is considered class 255,
+wherever there is a boundary between a ‘run’ of characters and something
+else — glue, kern, math, box, etc. Special case class 256 is ignored;
+useful for diacritics so I’m told.}
+\endcmd
+
+\cmd|\XeTeXinterchartoks|
+\xarg{interchar class 1}
+\xarg{interchar class 2}
+\opteq
+|{|\xarg{token list}|}|
+\desc{Defines tokens to be inserted between
+\xarg{interchar class 1} and \xarg{interchar class 2} (in that order).}
+\endcmd
+
+\begin{example}
+\XeTeXinterchartokenstate = 1
+\newXeTeXintercharclass \mycharclassa
+\newXeTeXintercharclass \mycharclassA
+\newXeTeXintercharclass \mycharclassB
+\XeTeXcharclass `\a \mycharclassa
+\XeTeXcharclass `\A \mycharclassA
+\XeTeXcharclass `\B \mycharclassB
+
+% between "a" and "A":
+\XeTeXinterchartoks \mycharclassa \mycharclassA = {[\itshape}
+\XeTeXinterchartoks \mycharclassA \mycharclassa = {\upshape]}
+
+% between " " and "B":
+\XeTeXinterchartoks 255 \mycharclassB = {\bgroup\color{blue}}
+\XeTeXinterchartoks \mycharclassB 255 = {\egroup}
+
+% between "B" and "B":
+\XeTeXinterchartoks \mycharclassB \mycharclassB = {.}
+
+aAa A a B aBa BB
+\end{example}
+
+\noindent In the above example the input text is typeset as\par
+{\centering
+ \verb|a[\itshape A\upshape]a A a \bgroup\color{blue}B\egroup aBa B.B|\par}
+
+\newpage
+\section{Encodings}
+
+\cmd|\XeTeXinputnormalization|
+\xarg{Integer}
+\desc{Specify whether \xetex is to perform normalisation on the input
+text and, if so, what type of normalisation to use. See
+\url{http://unicode.org/reports/tr15/} for a description of Unicode
+normalisation. The \<Integer> value can be:\medskip
+\begin{optdesc}
+\item[0] (default) do not perform normalisation.
+\item[1] normalise to NFC form, using precomposed characters where possible
+         instead base characters with combining marks.
+\item[2] normalise to NFD form, using base characters with combining marks
+         instead of precomposed characters.
+\end{optdesc}}
+\endcmd
+
+\cmd|\XeTeXinputencoding|
+\xarg{Charset name}
+\desc{Defines the input encoding of the following text.}
+\endcmd
+
+\cmd|\XeTeXdefaultencoding|
+\xarg{Charset name}
+\desc{Defines the input encoding of subsequent files to be read.}
+\endcmd
+
+\section{Line breaking}
+
+\cmd|\XeTeXdashbreakstate|
+\xarg{Integer}
+\desc{Specify whether line breaks after en- and em-dashes are
+allowed. Off, 0, by default.}
+\endcmd
+
+\cmd|\XeTeXlinebreaklocale|
+\xarg{Locale ID}
+\desc{Defines how to break lines for multilingual text.}
+\endcmd
+
+\cmd|\XeTeXlinebreakskip|
+\xarg{Glue}
+\desc{Inter-character linebreak stretch}
+\endcmd
+
+\cmd|\XeTeXlinebreakpenalty|
+\xarg{Integer}
+\desc{Inter-character linebreak penalty}
+\endcmd
+
+\cmd|\XeTeXupwardsmode|
+\xarg{Integer} 
+\desc{If greater than zero, successive lines of text (and rules, boxes,
+etc.) will be stacked upwards instead of downwards.}
+\endcmd
+
+\section{Graphics}
+
+Thanks to Heiko Oberdiek, Paul Isambert, and William Adams for their
+help with the documentation in this section.
+
+\cmd|\XeTeXpicfile|
+\xarg{filename}
+\oarg{ scaled \xarg{int} \|
+  xscaled \xarg{int} \|
+  yscaled \xarg{int} \| \\\hspace*{2em}
+  width \xarg{dimen} \|
+  height \xarg{dimen} \|
+  rotated \xarg{decimal} }
+\desc{Insert an image. See below for explanation of optional arguments.}
+\endcmd
+
+\cmd|\XeTeXpdffile|
+\xarg{filename}
+\oarg{page \xarg{int}}
+\oarg{ crop \| media \| bleed \| trim \| art }\\\hspace*{2em}
+\oarg{scaled \xarg{int} \|
+  xscaled \xarg{int} \|
+  yscaled \xarg{int} \|
+  width \xarg{dimen} \|\\\hspace*{2em}~
+  height \xarg{dimen} \|
+  rotated \xarg{decimal}}
+\desc{Insert (pages of) a PDF. See below for explanation of optional
+arguments.}
+\endcmd
+
+\noindent In the graphic/PDF commands above, \xarg{filename} is the
+usual file name argument of \cs{input}, \cs{openin}, \etc.  It must not
+terminated by \cs{relax} if options are given.  \xarg{int} and
+\xarg{dimen} are the usual integer or dimen specifications of regular
+\tex.
+
+The rotation is specified in degrees (\ie, an input of ‘|360|’ is full
+circle) and the rotation is counterclockwise. The syntax of
+\xarg{decimal} require some explanation:
+\begin{quote}
+\<decimal> $\to$ \<optional signs>\<unsigned decimal>\\
+\<unsigned decimal> $\to$ \<normal decimal>
+  \| \<coerced dimen> \| \<internal dimen>\\
+\<normal decimal> $\to$ \<normal integer> \| \<decimal constant>
+\end{quote}
+A \xarg{coerced dimen} or \xarg{internal dimen} is interpreted as number
+with unit ‘|pt|’. For example, for a rotation specified with a dimension
+\cs{testdim},
+\begin{itemize}
+\item \verb|\testdim=45pt  | results in a rotation of 45\textdegree,
+\item \verb|\testdim=1in    | is 72.27\textdegree, and
+\item \verb|\testdim=100sp| is (100/65536)\textdegree.
+\end{itemize}
+In all cases the resulting decimal number for rotation $x$ must be  
+within the limits $-16384 < x < 16384$.
+
+The \cs{XeTeXpdffile} command takes one more optional argument for
+specifying to which ‘box’ the PDF should be cropped before inserting
+it (the second optional argument listed in thes syntax of
+\cs{XeTeXpdffile} above). The PDF standard defines a number of
+(rectangular) bounding boxes that may be specified for various
+purposes. These are described in the PDF Standard\footnote{Adobe
+Systems Incorporated, 2008:\\
+\url{http://www.adobe.com/devnet/acrobat/pdfs/PDF32000_2008.pdf}} and
+summarised below.
+\begin{quote}
+\begin{description}[style=nextline,leftmargin=1.5cm]
+\item [media] the box defining the physical page size.
+\item [crop] the box of the page contents for display/printing purposes.
+\item [bleed] the box containing the page contents plus whatever extra
+space required for printing purposes.
+\item [trim] the box of the finished page after trimming the printed
+‘bleed box’.
+\item [art] the box containing the ‘meaningful content’ of the
+page. This could be the crop box with boilerplate text/logos trimmed
+off.
+\end{description}
+\end{quote}
+When not specified in the PDF to be inserted, the crop box defaults
+to the media box, and the bleed, trim, and art boxes default to the crop
+box.
+
+\cmd|\XeTeXpdfpagecount|
+\xarg{filename}
+\desc{Expands to the number of pages in a PDF file.}
+\endcmd
+
+
+\section{Character protrusion}
+
+\cmd|\XeTeXprotrudechars|
+\xarg{integer}
+\desc{Equivalent to \cs{pdfprotrudechars} in pdf\TeX{} for controlling
+character protrusion or ‘margin kerning’. When set to zero (default), character
+protrusion is turned off. When set to one, it is activated but will not affect
+line-breaking. When set to two, line-breaking decisions will change as a result
+of the character protrusion.}
+\begin{example}
+\XeTeXprotrudechars=2
+\font\rm="[texgyrepagella-regular.otf]"\relax
+\rm
+\rpcode\font\XeTeXcharglyph\hyphenchar\font=250
+\hsize=20mm
+a a a a a a a a a a abbabbabb aabbabbabb abbabb
+\end{example}
+See the pdf\TeX{} documentation for further details.
+\endcmd
+
+\cmd|\rpcode| \xarg{font} \xarg{char slot} (integer, $n$)
+\desc{Sets the right-side character protrusion value of the \xarg{char slot} in
+the specified \xarg{font} to $n/1000$\,em. $n$ is clipped to $\pm1000$.}
+\endcmd
+
+\cmd|\lpcode| \xarg{font} \xarg{char slot} (integer, $n$)
+\desc{Sets the left-side character protrusion value of the \xarg{char slot} in
+the specified \xarg{font} to $n/1000$\,em. $n$ is clipped to $\pm1000$.}
+\endcmd
+
+
+\section{Cross-compatibility with \pdftex and/or \luatex}
+
+\cmd|\pdfpageheight|
+\xarg{dimension}
+\desc{The height of the PDF page.}
+\endcmd
+
+\cmd|\pdfpagewidth|
+\xarg{dimension}
+\desc{The width of the PDF page.}
+\endcmd
+
+\cmd|\pdfsavepos|
+\desc{Saves the current location of the page in the typesetting stream.}
+\endcmd
+
+\cmd|\pdflastxpos|
+\desc{Retrieves the horizontal position saved by \texttt{\char`\\pdfsavepos}.}
+\endcmd
+
+\cmd|\pdflastypos|
+\desc{Retrieves the vertical position saved by \texttt{\char`\\pdfsavepos}.}
+\endcmd
+
+\cmd|\ifincsname...(\else...)\fi|
+\desc{\tex conditional to branch true if the expansion occurs within
+\texttt{\char`\\csname ... \char`\\endcsname}.}
+\endcmd
+
+\begin{example}
+\def\x{\ifincsname y\else hello\fi}
+\def\y{goodbye}
+\x/\csname\x\endcsname
+\end{example}
+
+\cmd|\ifprimitive| \xarg{control sequence} |...(\else...)\fi|
+\desc{\tex conditional to test if a control sequence is a primitive and
+that it has not been redefined.}
+\endcmd
+
+\cmd|\primitive|
+\xarg{control sequence}
+\desc{If the control sequence is a primitive that’s been redefined, this
+command causes it to expand with its original (i.e., primitive)
+definition.}
+\endcmd
+
+\cmd|\shellescape|
+\desc{Read-only status indicating the level of ‘shell escape’
+allowed. That is, whether commands are allowed to be executed through
+\texttt{\char`\\write18\char`\{...\char`\}}. Expands to zero for off;
+one for on (allowed); two is ‘restricted’ (default in TeX Live 2009 and
+greater) in which a subset of commands only are allowed.}
+\endcmd
+
+\begin{example}
+Shell escape \ifnum\shellescape>0 is \else is not \fi enabled.
+\end{example}
+
+\cmd|\strcmp|
+\xarg{arg one}
+\xarg{arg two}
+\desc{Compares the full expansion of the two token list
+arguments. Expands to zero if they are the same, less than one if the
+first argument sorts lower (lexicographically) than the second argument,
+and greater than one if vice versa.}
+\endcmd
+
+\begin{example}
+‘a’ is less than ‘z’: \strcmp{a}{z}
+
+\def\z{a}
+The tokens expand before being compared: \strcmp{a}{\z}
+
+\def\a{z}
+Therefore, |\a| is greater than |\z|: \strcmp{\a}{\z}
+
+\edef\b{\string b}
+Also note that catcodes are ignored: \strcmp{b}{\b}
+\end{example}
+
+\cmd|\suppressfontnotfounderror|
+\xarg{integer}
+\desc{When set to zero (default) if a font is loaded that cannot be
+located by \xetex, an error message results and typesetting is
+halted. When set to one, this error message is
+suppressed and the font control sequence being defined is set to
+\cs{nullfont}.}
+\begin{example}
+\suppressfontnotfounderror=1
+\font\x="ImpossibleFont" at 10pt
+\ifx\x\nullfont
+  \font\x="Georgia" at 10pt
+\fi
+\x This would be ‘ImpossibleFont’, if it existed.
+\end{example}
+\endcmd
+
+
+\section{Misc.}
+
+\cmd|\XeTeXversion|
+\desc{Expands to a number corresponding to the \xetex version.}
+\endcmd
+
+\cmd|\XeTeXrevision|
+\desc{Expands to a string corresponding to the \xetex revision number.}
+\endcmd
+
+\begin{example}
+The \xetex version used to typeset this document is:
+\the\XeTeXversion\XeTeXrevision
+\end{example}
+
+\end{document}

@@ -1,0 +1,10 @@
+{
+  "name": "xetex.wasm",
+  "version": "0.0.1",
+  "description": "XeTeX compiled to WebAssembly",
+  "main": "index.js",
+  "repository": "https://github.com/xiaohanyu/xetex.wasm",
+  "author": "Xiao Hanyu <xiaohanyu1988@gmail.com>",
+  "license": "MIT",
+  "private": false
+}

@@ -61,6 +61,12 @@ prepare:
 	cp $(ROOT_DIR)/source/texk/web2c/lib/*.c lib/
 	cp $(ROOT_DIR)/source/texk/web2c/lib/*.h lib/
 
+	# libxetex files
+	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.h xetexdir/
+	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.c xetexdir/
+	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.cpp xetexdir/
+	cp -r $(ROOT_DIR)/source/texk/web2c/xetexdir/image xetexdir/
+
 xetex_sources = xetexdir/xetexextra.c \
 	synctexdir/synctex.c \
 	xetexini.c \
@@ -100,7 +106,36 @@ liba_objects = $(liba_sources:.c=.o)
 $(liba_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects)
+libxetex_cc_sources = xetexdir/XeTeX_ext.c \
+	xetexdir/XeTeX_pic.c \
+	xetexdir/trans.c \
+	xetexdir/image/bmpimage.c \
+	xetexdir/image/jpegimage.c \
+	xetexdir/image/mfileio.c \
+	xetexdir/image/numbers.c \
+	xetexdir/image/pngimage.c
+
+libxetex_cc_objects = $(libxetex_cc_sources:.c=.o)
+
+$(libxetex_cc_objects): %.o: %.c
+	$(CC) $(CCFLAGS) -c -o $@ $<
+
+libxetex_cxx_sources = xetexdir/XeTeXFontInst.cxx \
+	xetexdir/XeTeXFontMgr.cxx \
+	xetexdir/XeTeXLayoutInterface.cxx \
+	xetexdir/XeTeXOTMath.cxx \
+	xetexdir/hz.cxx \
+	xetexdir/pdfimage.cxx \
+	xetexdir/XeTeXFontMgr_FC.cxx
+
+libxetex_cxx_objects = $(libxetex_cxx_sources:.cxx=.o)
+
+$(libxetex_cxx_objects): %.o: %.cpp
+	$(CXX) $(CCFLAGS) -c -o $@ $<
+
+libxetex_objects = $(libxetex_cc_objects) $(libxetex_cxx_objects)
+
+xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
 	$(CXX) \
@@ -108,7 +143,7 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects)
 	-O2 \
 	-o xetex \
 	$(xetex_objects) \
-	libxetex.a \
+	$(libxetex_objects) \
 	$(libmd5_objects) \
 	$(liba_objects) \
 	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \

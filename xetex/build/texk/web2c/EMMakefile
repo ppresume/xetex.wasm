@@ -50,8 +50,12 @@ CCFLAGS = $(WFLAGS) \
 	-O0 \
 
 prepare:
+	# xetex files
 	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/xetexextra.c xetexdir/
 	cp $(ROOT_DIR)/source/texk/web2c/synctexdir/synctex.c synctexdir/
+
+	# libmd5 files
+	cp $(ROOT_DIR)/source/texk/web2c/libmd5/md5.c libmd5/
 
 xetex_sources = xetexdir/xetexextra.c \
 	synctexdir/synctex.c \
@@ -64,7 +68,14 @@ xetex_objects = $(xetex_sources:.c=.o)
 $(xetex_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-xetex: prepare $(xetex_objects)
+libmd5_sources = libmd5/md5.c
+
+libmd5_objects = $(libmd5_sources:.c=.o)
+
+$(libmd5_objects): %.o: %.c
+	$(CC) $(CCFLAGS) -c -o $@ $<
+
+xetex: prepare $(xetex_objects) $(libmd5_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
 	$(CXX) \
@@ -73,7 +84,7 @@ xetex: prepare $(xetex_objects)
 	-o xetex \
 	$(xetex_objects) \
 	libxetex.a \
-	libmd5.a \
+	$(libmd5_objects) \
 	lib/lib.a \
 	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
 	$(ROOT_DIR)/build/libs/graphite2/libgraphite2.a \

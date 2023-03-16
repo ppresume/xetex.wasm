@@ -1,18 +1,77 @@
 ROOT_DIR = ../../..
+CC = gcc
 CXX = g++
+WFLAGS = -Wall \
+	-Wunused \
+	-Wimplicit \
+	-Wreturn-type \
+	-Wmissing-prototypes \
+	-Wmissing-declarations \
+	-Wparentheses \
+	-Wswitch \
+	-Wtrigraphs \
+	-Wpointer-arith \
+	-Wcast-qual \
+	-Wcast-align \
+	-Wwrite-strings \
+	-Wdeclaration-after-statement \
+	-Wno-parentheses-equality
+DFLAGS = -DHAVE_CONFIG_H \
+	-DNO_DEBUG \
+	-DU_STATIC_IMPLEMENTATION \
+	-DGRAPHITE2_STATIC \
+	-D__SyncTeX__ \
+	'-DSYNCTEX_ENGINE_H="synctex-xetex.h"' 	# note the single quote matters here
+IFLAGS = -I. \
+	-I$(ROOT_DIR)/source/texk/web2c \
+	-I$(ROOT_DIR)/build/texk \
+	-I$(ROOT_DIR)/source/texk \
+	-I$(ROOT_DIR)/source/texk/web2c/xetexdir \
+	-I$(ROOT_DIR)/build/libs/icu/include \
+	-I$(ROOT_DIR)/build/libs/freetype2/freetype2 \
+	-I$(ROOT_DIR)/build/libs/teckit/include \
+	-I$(ROOT_DIR)/build/libs/harfbuzz/include \
+	-I$(ROOT_DIR)/build/libs/graphite2/include \
+	-I$(ROOT_DIR)/build/libs/poppler/include \
+	-I$(ROOT_DIR)/build/libs/libpng/include \
+	-I$(ROOT_DIR)/build/libs/zlib/include \
+	-I$(ROOT_DIR)/source/texk/web2c/libmd5 \
+	-I$(ROOT_DIR)/source/texk/web2c/synctexdir \
+	-I./w2c \
+	-I/usr/include \
+	-isystem /usr/include/x86_64-linux-gnu/ \
+	-I/usr/include/uuid \
+	-I/usr/include/freetype2 \
+	-I/usr/include/libpng16 
+CCFLAGS = $(WFLAGS) \
+	$(DFLAGS) \
+	$(IFLAGS) \
+	-g \
+	-O0 \
 
-xetex:
+prepare:
+	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/xetexextra.c xetexdir/
+	cp $(ROOT_DIR)/source/texk/web2c/synctexdir/synctex.c synctexdir/
+
+xetex_sources = xetexdir/xetexextra.c \
+	synctexdir/synctex.c \
+	xetexini.c \
+	xetex0.c \
+	xetex-pool.c
+
+xetex_objects = $(xetex_sources:.c=.o)
+
+$(xetex_objects): %.o: %.c
+	$(CC) $(CCFLAGS) -c -o $@ $<
+
+xetex: prepare $(xetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
 	$(CXX) \
 	-g \
 	-O2 \
 	-o xetex \
-	xetexdir/xetex-xetexextra.o \
-	synctexdir/xetex-synctex.o \
-	xetex-xetexini.o \
-	xetex-xetex0.o \
-	xetex-xetex-pool.o \
+	$(xetex_objects) \
 	libxetex.a \
 	libmd5.a \
 	lib/lib.a \

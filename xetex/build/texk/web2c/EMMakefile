@@ -1,0 +1,36 @@
+ROOT_DIR = ../../..
+CXX = g++
+
+xetex:
+	# note that the order of `.a` files matters here, namely, if you put
+	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
+	$(CXX) \
+	-g \
+	-O2 \
+	-o xetex \
+	xetexdir/xetex-xetexextra.o \
+	synctexdir/xetex-synctex.o \
+	xetex-xetexini.o \
+	xetex-xetex0.o \
+	xetex-xetex-pool.o \
+	libxetex.a \
+	libmd5.a \
+	lib/lib.a \
+	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
+	$(ROOT_DIR)/build/libs/graphite2/libgraphite2.a \
+	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicuuc.a \
+	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicudata.a \
+	$(ROOT_DIR)/build/libs/teckit/libTECkit.a \
+	$(ROOT_DIR)/build/libs/poppler/libpoppler.a \
+	$(ROOT_DIR)/build/libs/libpng/libpng.a \
+	$(ROOT_DIR)/build/libs/freetype2/libfreetype.a \
+	$(ROOT_DIR)/build/libs/zlib/libz.a \
+	$(ROOT_DIR)/build/texk/kpathsea/.libs/libkpathsea.a \
+	-lfontconfig \
+	-lfreetype \
+	-lm \
+	-lstdc++ \
+	-lc \
+	-lgcc_eh \
+	-lgcc \
+	-nodefaultlibs

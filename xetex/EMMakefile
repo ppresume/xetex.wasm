@@ -155,6 +155,12 @@ zlib:
 	cp $(ROOT_DIR)/source/libs/zlib/libz.a \
 	   $(ROOT_DIR)/build/libs/zlib/
 
+poppler: zlib
+	cd $(ROOT_DIR)/source/libs/poppler && emconfigure ./configure
+	cd $(ROOT_DIR)/source/libs/poppler && emmake make -j 8
+	cp $(ROOT_DIR)/source/libs/poppler/libpoppler.a \
+	   $(ROOT_DIR)/build/libs/poppler/
+
 xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error

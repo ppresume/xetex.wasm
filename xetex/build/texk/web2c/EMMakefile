@@ -135,6 +135,12 @@ $(libxetex_cxx_objects): %.o: %.cpp
 
 libxetex_objects = $(libxetex_cc_objects) $(libxetex_cxx_objects)
 
+kpathsea:
+	cd $(ROOT_DIR)/source/texk/kpathsea && emconfigure ./configure
+	cd $(ROOT_DIR)/source/texk/kpathsea && emmake make -j 8
+	cp $(ROOT_DIR)/source/texk/kpathsea/.libs/libkpathsea.a \
+	   $(ROOT_DIR)/build/texk/kpathsea/.libs
+
 xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error

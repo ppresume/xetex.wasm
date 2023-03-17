@@ -1,4 +1,6 @@
-ROOT_DIR = ../../..
+ROOT_DIR = .
+WEB2C_SOURCE_DIR = $(ROOT_DIR)/source/texk/web2c
+WEB2C_BUILD_DIR = $(ROOT_DIR)/build/texk/web2c
 CC = gcc
 CXX = g++
 WFLAGS = -Wall \
@@ -22,8 +24,9 @@ DFLAGS = -DHAVE_CONFIG_H \
 	-DGRAPHITE2_STATIC \
 	-D__SyncTeX__ \
 	'-DSYNCTEX_ENGINE_H="synctex-xetex.h"' 	# note the single quote matters here
-IFLAGS = -I. \
-	-I$(ROOT_DIR)/source/texk/web2c \
+IFLAGS = -I$(WEB2C_BUILD_DIR) \
+	-I$(WEB2C_BUILD_DIR)/w2c \
+	-I$(WEB2C_SOURCE_DIR) \
 	-I$(ROOT_DIR)/build/texk \
 	-I$(ROOT_DIR)/source/texk \
 	-I$(ROOT_DIR)/source/texk/web2c/xetexdir \
@@ -35,9 +38,8 @@ IFLAGS = -I. \
 	-I$(ROOT_DIR)/build/libs/poppler/include \
 	-I$(ROOT_DIR)/build/libs/libpng/include \
 	-I$(ROOT_DIR)/build/libs/zlib/include \
-	-I$(ROOT_DIR)/source/texk/web2c/libmd5 \
-	-I$(ROOT_DIR)/source/texk/web2c/synctexdir \
-	-I./w2c \
+	-I$(WEB2C_SOURCE_DIR)/libmd5 \
+	-I$(WEB2C_SOURCE_DIR)/synctexdir \
 	-I/usr/include \
 	-isystem /usr/include/x86_64-linux-gnu/ \
 	-I/usr/include/uuid \
@@ -51,82 +53,82 @@ CCFLAGS = $(WFLAGS) \
 
 prepare:
 	# xetex files
-	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/xetexextra.c xetexdir/
-	cp $(ROOT_DIR)/source/texk/web2c/synctexdir/synctex.c synctexdir/
+	cp $(WEB2C_SOURCE_DIR)/xetexdir/xetexextra.c $(WEB2C_BUILD_DIR)/xetexdir/
+	cp $(WEB2C_SOURCE_DIR)/synctexdir/synctex.c $(WEB2C_BUILD_DIR)/synctexdir/
 
 	# libmd5 files
-	cp $(ROOT_DIR)/source/texk/web2c/libmd5/md5.c libmd5/
+	cp $(WEB2C_SOURCE_DIR)/libmd5/md5.c $(WEB2C_BUILD_DIR)/libmd5/
 
 	# lib/lib.a files
-	cp $(ROOT_DIR)/source/texk/web2c/lib/*.c lib/
-	cp $(ROOT_DIR)/source/texk/web2c/lib/*.h lib/
+	cp $(WEB2C_SOURCE_DIR)/lib/*.c $(WEB2C_BUILD_DIR)/lib/
+	cp $(WEB2C_SOURCE_DIR)/lib/*.h $(WEB2C_BUILD_DIR)/lib/
 
 	# libxetex files
-	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.h xetexdir/
-	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.c xetexdir/
-	cp $(ROOT_DIR)/source/texk/web2c/xetexdir/*.cpp xetexdir/
-	cp -r $(ROOT_DIR)/source/texk/web2c/xetexdir/image xetexdir/
+	cp $(WEB2C_SOURCE_DIR)/xetexdir/*.h $(WEB2C_BUILD_DIR)/xetexdir/
+	cp $(WEB2C_SOURCE_DIR)/xetexdir/*.c $(WEB2C_BUILD_DIR)/xetexdir/
+	cp $(WEB2C_SOURCE_DIR)/xetexdir/*.cpp $(WEB2C_BUILD_DIR)/xetexdir/
+	cp -r $(WEB2C_SOURCE_DIR)/xetexdir/image $(WEB2C_BUILD_DIR)/xetexdir/
 
-xetex_sources = xetexdir/xetexextra.c \
-	synctexdir/synctex.c \
-	xetexini.c \
-	xetex0.c \
-	xetex-pool.c
+xetex_sources = $(WEB2C_BUILD_DIR)/xetexdir/xetexextra.c \
+	$(WEB2C_BUILD_DIR)/synctexdir/synctex.c \
+	$(WEB2C_BUILD_DIR)/xetexini.c \
+	$(WEB2C_BUILD_DIR)/xetex0.c \
+	$(WEB2C_BUILD_DIR)/xetex-pool.c
 
 xetex_objects = $(xetex_sources:.c=.o)
 
 $(xetex_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libmd5_sources = libmd5/md5.c
+libmd5_sources = $(WEB2C_BUILD_DIR)/libmd5/md5.c
 
 libmd5_objects = $(libmd5_sources:.c=.o)
 
 $(libmd5_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-liba_sources = lib/alloca.c \
-	lib/coredump.c \
-	lib/fprintreal.c \
-	lib/inputint.c \
-	lib/printversion.c \
-	lib/setupvar.c \
-	lib/uexit.c \
-	lib/version.c \
-	lib/basechsuffix.c \
-	lib/chartostring.c \
-	lib/eofeoln.c \
-	lib/input2int.c \
-	lib/openclose.c \
-	lib/usage.c \
-	lib/zround.c
+liba_sources = $(WEB2C_BUILD_DIR)/lib/alloca.c \
+	$(WEB2C_BUILD_DIR)/lib/coredump.c \
+	$(WEB2C_BUILD_DIR)/lib/fprintreal.c \
+	$(WEB2C_BUILD_DIR)/lib/inputint.c \
+	$(WEB2C_BUILD_DIR)/lib/printversion.c \
+	$(WEB2C_BUILD_DIR)/lib/setupvar.c \
+	$(WEB2C_BUILD_DIR)/lib/uexit.c \
+	$(WEB2C_BUILD_DIR)/lib/version.c \
+	$(WEB2C_BUILD_DIR)/lib/basechsuffix.c \
+	$(WEB2C_BUILD_DIR)/lib/chartostring.c \
+	$(WEB2C_BUILD_DIR)/lib/eofeoln.c \
+	$(WEB2C_BUILD_DIR)/lib/input2int.c \
+	$(WEB2C_BUILD_DIR)/lib/openclose.c \
+	$(WEB2C_BUILD_DIR)/lib/usage.c \
+	$(WEB2C_BUILD_DIR)/lib/zround.c
 
 liba_objects = $(liba_sources:.c=.o)
 
 $(liba_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libxetex_cc_sources = xetexdir/XeTeX_ext.c \
-	xetexdir/XeTeX_pic.c \
-	xetexdir/trans.c \
-	xetexdir/image/bmpimage.c \
-	xetexdir/image/jpegimage.c \
-	xetexdir/image/mfileio.c \
-	xetexdir/image/numbers.c \
-	xetexdir/image/pngimage.c
+libxetex_cc_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeX_ext.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeX_pic.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/trans.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/image/bmpimage.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/image/jpegimage.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/image/mfileio.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/image/numbers.c \
+	$(WEB2C_BUILD_DIR)/xetexdir/image/pngimage.c
 
 libxetex_cc_objects = $(libxetex_cc_sources:.c=.o)
 
 $(libxetex_cc_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libxetex_cxx_sources = xetexdir/XeTeXFontInst.cxx \
-	xetexdir/XeTeXFontMgr.cxx \
-	xetexdir/XeTeXLayoutInterface.cxx \
-	xetexdir/XeTeXOTMath.cxx \
-	xetexdir/hz.cxx \
-	xetexdir/pdfimage.cxx \
-	xetexdir/XeTeXFontMgr_FC.cxx
+libxetex_cxx_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXLayoutInterface.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXOTMath.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/hz.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/pdfimage.cxx \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr_FC.cxx
 
 libxetex_cxx_objects = $(libxetex_cxx_sources:.cxx=.o)
 
@@ -147,7 +149,7 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	$(CXX) \
 	-g \
 	-O2 \
-	-o xetex \
+	-o $(WEB2C_BUILD_DIR)/xetex \
 	$(xetex_objects) \
 	$(libxetex_objects) \
 	$(libmd5_objects) \

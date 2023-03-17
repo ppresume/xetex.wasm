@@ -143,6 +143,12 @@ kpathsea:
 	cp $(ROOT_DIR)/source/texk/kpathsea/.libs/libkpathsea.a \
 	   $(ROOT_DIR)/build/texk/kpathsea/.libs
 
+graphite2:
+	cd $(ROOT_DIR)/source/libs/graphite2 && emconfigure ./configure
+	cd $(ROOT_DIR)/source/libs/graphite2 && emmake make -j 8
+	cp $(ROOT_DIR)/source/libs/graphite2/libgraphite2.a \
+	   $(ROOT_DIR)/build/libs/graphite2/
+
 xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error

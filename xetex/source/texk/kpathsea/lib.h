@@ -88,7 +88,7 @@ extern "C" {
   START_WARNING (); fprintf (stderr, str, e1, e2, e3, e4); END_WARNING ()
 
 #define LIB_START_FATAL() do { \
-  fprintf (stderr, "%s: fatal: ", kpse->invocation_name);
+  fprintf (stderr, "%s: fatal: ", kpse_def->invocation_name);
 
 #define LIB_FATAL(str)                                                  \
   LIB_START_FATAL (); fputs (str, stderr); END_FATAL ()

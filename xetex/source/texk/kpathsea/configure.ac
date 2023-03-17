@@ -80,7 +80,7 @@ else
 fi
 AC_CACHE_CHECK([for $snfunc and $vsnfunc],
                [kpse_cv_have_snfuncs],
-               [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdarg.h>
+               [AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
                                                   char buf[16];
                                                   va_list ap;]],
                                                 [[$snfunc (buf, 16, "%s", "abc");
@@ -90,7 +90,8 @@ AC_CACHE_CHECK([for $snfunc and $vsnfunc],
 if test "x$kpse_cv_have_snfuncs" != xyes; then
   AC_MSG_ERROR([Sorry, you need $snfunc and $vsnfunc.])
 fi
-AC_RUN_IFELSE([AC_LANG_PROGRAM([[char buf[4] = "abc";]],
+AC_RUN_IFELSE([AC_LANG_PROGRAM([[#include <stdio.h>
+                                 char buf[4] = "abc";]],
                                [[if ($snfunc (buf, 1, "%s", "x") == 0 || buf[1] != 'b')
                                    return 1;]])],
               [],

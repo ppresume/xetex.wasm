@@ -149,6 +149,12 @@ graphite2:
 	cp $(ROOT_DIR)/source/libs/graphite2/libgraphite2.a \
 	   $(ROOT_DIR)/build/libs/graphite2/
 
+zlib:
+	cd $(ROOT_DIR)/source/libs/zlib && emconfigure ./configure
+	cd $(ROOT_DIR)/source/libs/zlib && emmake make -j 8
+	cp $(ROOT_DIR)/source/libs/zlib/libz.a \
+	   $(ROOT_DIR)/build/libs/zlib/
+
 xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error

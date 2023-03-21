@@ -122,20 +122,20 @@ libxetex_cc_objects = $(libxetex_cc_sources:.c=.o)
 $(libxetex_cc_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libxetex_cxx_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXLayoutInterface.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXOTMath.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/hz.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/pdfimage.cxx \
-	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr_FC.cxx
+libxetex_cpp_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXLayoutInterface.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXOTMath.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/hz.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/pdfimage.cpp \
+	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr_FC.cpp
 
-libxetex_cxx_objects = $(libxetex_cxx_sources:.cxx=.o)
+libxetex_cpp_objects = $(libxetex_cpp_sources:.cpp=.o)
 
-$(libxetex_cxx_objects): %.o: %.cpp
+$(libxetex_cpp_objects): %.o: %.cpp
 	$(CXX) $(CCFLAGS) -c -o $@ $<
 
-libxetex_objects = $(libxetex_cc_objects) $(libxetex_cxx_objects)
+libxetex_objects = $(libxetex_cc_objects) $(libxetex_cpp_objects)
 
 kpathsea:
 	cd $(ROOT_DIR)/source/texk/kpathsea && emconfigure ./configure

@@ -139,6 +139,12 @@ $(libxetex_cpp_objects): %.o: %.cpp
 
 libxetex_objects = $(libxetex_cc_objects) $(libxetex_cpp_objects)
 
+harfbuzz:
+	cd $(ROOT_DIR)/source/libs/harfbuzz && emconfigure ./configure
+	cd $(ROOT_DIR)/source/libs/harfbuzz && emmake make -j 8
+	cp $(ROOT_DIR)/source/libs/harfbuzz/libharfbuzz.a \
+	   $(ROOT_DIR)/build/libs/harfbuzz/
+
 icu:
 	# make native version first
 	cd $(ROOT_DIR)/source/libs/icu && ./configure
@@ -204,11 +210,11 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	-o $(WEB2C_BUILD_DIR)/xetex \
 	-s USE_LIBPNG=1 \
 	-s USE_FREETYPE=1 \
-	-s USE_HARFBUZZ=1 \
 	$(xetex_objects) \
 	$(libxetex_objects) \
 	$(libmd5_objects) \
 	$(liba_objects) \
+	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
 	$(ROOT_DIR)/build/libs/graphite2/libgraphite2.a \
 	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicuuc.a \
 	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicudata.a \

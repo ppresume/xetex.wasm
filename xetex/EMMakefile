@@ -1,8 +1,8 @@
 ROOT_DIR = .
 WEB2C_SOURCE_DIR = $(ROOT_DIR)/source/texk/web2c
 WEB2C_BUILD_DIR = $(ROOT_DIR)/build/texk/web2c
-CC = gcc
-CXX = g++
+CC = emcc
+CXX = em++
 WFLAGS = -Wall \
 	-Wunused \
 	-Wimplicit \
@@ -50,6 +50,8 @@ CCFLAGS = $(WFLAGS) \
 	$(IFLAGS) \
 	-g \
 	-O0 \
+
+ICU_TEMP_DIR := $(shell mktemp -d)
 
 prepare:
 	# xetex files
@@ -137,6 +139,32 @@ $(libxetex_cpp_objects): %.o: %.cpp
 
 libxetex_objects = $(libxetex_cc_objects) $(libxetex_cpp_objects)
 
+icu:
+	# make native version first
+	cd $(ROOT_DIR)/source/libs/icu && ./configure
+	cd $(ROOT_DIR)/source/libs/icu && make -j 8
+
+	# save some native binaries for later use
+	cp -r $(ROOT_DIR)/source/libs/icu/icu-build/bin $(ICU_TEMP_DIR)/
+	cp $(ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
+	   $(ICU_TEMP_DIR)/
+	cd $(ROOT_DIR)/source/libs/icu && make distclean
+
+	# try to make wasm for the first time
+	cd $(ROOT_DIR)/source/libs/icu && emconfigure ./configure
+	-cd $(ROOT_DIR)/source/libs/icu && emmake make -j 8
+
+	# wasm build would fail and we need the native tools back
+	cp --preserve=mode $(ICU_TEMP_DIR)/bin/* \
+	   $(ROOT_DIR)/source/libs/icu/icu-build/bin
+
+	# make wasm for the second time
+	cd $(ROOT_DIR)/source/libs/icu && emmake make -j 8
+	cp $(ROOT_DIR)/source/libs/icu/icu-build/lib/libicuuc.a \
+	   $(ROOT_DIR)/build/libs/icu/icu-build/lib/
+	cp $(ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
+	   $(ROOT_DIR)/build/libs/icu/icu-build/lib/
+
 kpathsea:
 	cd $(ROOT_DIR)/source/texk/kpathsea && emconfigure ./configure
 	cd $(ROOT_DIR)/source/texk/kpathsea && emmake make -j 8
@@ -174,25 +202,17 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	-g \
 	-O2 \
 	-o $(WEB2C_BUILD_DIR)/xetex \
+	-s USE_LIBPNG=1 \
+	-s USE_FREETYPE=1 \
+	-s USE_HARFBUZZ=1 \
 	$(xetex_objects) \
 	$(libxetex_objects) \
 	$(libmd5_objects) \
 	$(liba_objects) \
-	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
 	$(ROOT_DIR)/build/libs/graphite2/libgraphite2.a \
 	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicuuc.a \
 	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicudata.a \
 	$(ROOT_DIR)/build/libs/teckit/libTECkit.a \
 	$(ROOT_DIR)/build/libs/poppler/libpoppler.a \
-	$(ROOT_DIR)/build/libs/libpng/libpng.a \
-	$(ROOT_DIR)/build/libs/freetype2/libfreetype.a \
-	$(ROOT_DIR)/build/libs/zlib/libz.a \
 	$(ROOT_DIR)/build/texk/kpathsea/.libs/libkpathsea.a \
-	-lfontconfig \
-	-lfreetype \
-	-lm \
-	-lstdc++ \
-	-lc \
-	-lgcc_eh \
-	-lgcc \
-	-nodefaultlibs
+	$(ROOT_DIR)/../deps/fontconfig-2.13.1/src/.libs/libfontconfig.a

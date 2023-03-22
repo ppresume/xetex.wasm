@@ -19,8 +19,7 @@ WFLAGS := -Wall \
 	-Wcast-align \
 	-Wwrite-strings \
 	-Wdeclaration-after-statement \
-	-Wno-parentheses-equality \
-	-Wno-implicit-function-declaration
+	-Wno-parentheses-equality
 DFLAGS := -DHAVE_CONFIG_H \
 	-DNO_DEBUG \
 	-DU_STATIC_IMPLEMENTATION \

@@ -17,7 +17,8 @@ WFLAGS = -Wall \
 	-Wcast-align \
 	-Wwrite-strings \
 	-Wdeclaration-after-statement \
-	-Wno-parentheses-equality
+	-Wno-parentheses-equality \
+	-Wno-implicit-function-declaration
 DFLAGS = -DHAVE_CONFIG_H \
 	-DNO_DEBUG \
 	-DU_STATIC_IMPLEMENTATION \
@@ -38,13 +39,9 @@ IFLAGS = -I$(WEB2C_BUILD_DIR) \
 	-I$(ROOT_DIR)/build/libs/poppler/include \
 	-I$(ROOT_DIR)/build/libs/libpng/include \
 	-I$(ROOT_DIR)/build/libs/zlib/include \
+	-I$(ROOT_DIR)/../deps/fontconfig-2.13.1 \
 	-I$(WEB2C_SOURCE_DIR)/libmd5 \
-	-I$(WEB2C_SOURCE_DIR)/synctexdir \
-	-I/usr/include \
-	-isystem /usr/include/x86_64-linux-gnu/ \
-	-I/usr/include/uuid \
-	-I/usr/include/freetype2 \
-	-I/usr/include/libpng16 
+	-I$(WEB2C_SOURCE_DIR)/synctexdir
 CCFLAGS = $(WFLAGS) \
 	$(DFLAGS) \
 	$(IFLAGS) \
@@ -206,7 +203,6 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
 	$(CXX) \
 	-g \
-	-O2 \
 	-o $(WEB2C_BUILD_DIR)/xetex \
 	-s USE_LIBPNG=1 \
 	-s USE_FREETYPE=1 \
@@ -221,4 +217,5 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	$(ROOT_DIR)/build/libs/teckit/libTECkit.a \
 	$(ROOT_DIR)/build/libs/poppler/libpoppler.a \
 	$(ROOT_DIR)/build/texk/kpathsea/.libs/libkpathsea.a \
-	$(ROOT_DIR)/../deps/fontconfig-2.13.1/src/.libs/libfontconfig.a
+	$(ROOT_DIR)/../deps/fontconfig-2.13.1/src/.libs/libfontconfig.a \
+	$(ROOT_DIR)/../deps/expat-2.2.6/lib/.libs/libexpat.a

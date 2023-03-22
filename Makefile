@@ -1,9 +1,11 @@
-ROOT_DIR = .
-WEB2C_SOURCE_DIR = $(ROOT_DIR)/source/texk/web2c
-WEB2C_BUILD_DIR = $(ROOT_DIR)/build/texk/web2c
-CC = emcc
-CXX = em++
-WFLAGS = -Wall \
+ROOT_DIR := .
+XETEX_ROOT_DIR := $(ROOT_DIR)/xetex
+DEPS_ROOT_DIR := $(ROOT_DIR)/deps
+WEB2C_SOURCE_DIR := $(XETEX_ROOT_DIR)/source/texk/web2c
+WEB2C_BUILD_DIR := $(XETEX_ROOT_DIR)/build/texk/web2c
+CC := emcc
+CXX := em++
+WFLAGS := -Wall \
 	-Wunused \
 	-Wimplicit \
 	-Wreturn-type \
@@ -19,30 +21,30 @@ WFLAGS = -Wall \
 	-Wdeclaration-after-statement \
 	-Wno-parentheses-equality \
 	-Wno-implicit-function-declaration
-DFLAGS = -DHAVE_CONFIG_H \
+DFLAGS := -DHAVE_CONFIG_H \
 	-DNO_DEBUG \
 	-DU_STATIC_IMPLEMENTATION \
 	-DGRAPHITE2_STATIC \
 	-D__SyncTeX__ \
 	'-DSYNCTEX_ENGINE_H="synctex-xetex.h"' 	# note the single quote matters here
-IFLAGS = -I$(WEB2C_BUILD_DIR) \
+IFLAGS := -I$(WEB2C_BUILD_DIR) \
 	-I$(WEB2C_BUILD_DIR)/w2c \
 	-I$(WEB2C_SOURCE_DIR) \
-	-I$(ROOT_DIR)/build/texk \
-	-I$(ROOT_DIR)/source/texk \
-	-I$(ROOT_DIR)/source/texk/web2c/xetexdir \
-	-I$(ROOT_DIR)/build/libs/icu/include \
-	-I$(ROOT_DIR)/build/libs/freetype2/freetype2 \
-	-I$(ROOT_DIR)/build/libs/teckit/include \
-	-I$(ROOT_DIR)/build/libs/harfbuzz/include \
-	-I$(ROOT_DIR)/build/libs/graphite2/include \
-	-I$(ROOT_DIR)/build/libs/poppler/include \
-	-I$(ROOT_DIR)/build/libs/libpng/include \
-	-I$(ROOT_DIR)/build/libs/zlib/include \
-	-I$(ROOT_DIR)/../deps/fontconfig-2.13.1 \
+	-I$(XETEX_ROOT_DIR)/build/texk \
+	-I$(XETEX_ROOT_DIR)/source/texk \
+	-I$(XETEX_ROOT_DIR)/source/texk/web2c/xetexdir \
+	-I$(XETEX_ROOT_DIR)/build/libs/icu/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/freetype2/freetype2 \
+	-I$(XETEX_ROOT_DIR)/build/libs/teckit/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/harfbuzz/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/graphite2/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/poppler/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/libpng/include \
+	-I$(XETEX_ROOT_DIR)/build/libs/zlib/include \
+	-I$(DEPS_ROOT_DIR)/fontconfig-2.13.1 \
 	-I$(WEB2C_SOURCE_DIR)/libmd5 \
 	-I$(WEB2C_SOURCE_DIR)/synctexdir
-CCFLAGS = $(WFLAGS) \
+CCFLAGS := $(WFLAGS) \
 	$(DFLAGS) \
 	$(IFLAGS) \
 	-g \
@@ -107,7 +109,7 @@ liba_objects = $(liba_sources:.c=.o)
 $(liba_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libxetex_cc_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeX_ext.c \
+libxetex_cc_sources := $(WEB2C_BUILD_DIR)/xetexdir/XeTeX_ext.c \
 	$(WEB2C_BUILD_DIR)/xetexdir/XeTeX_pic.c \
 	$(WEB2C_BUILD_DIR)/xetexdir/trans.c \
 	$(WEB2C_BUILD_DIR)/xetexdir/image/bmpimage.c \
@@ -116,12 +118,12 @@ libxetex_cc_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeX_ext.c \
 	$(WEB2C_BUILD_DIR)/xetexdir/image/numbers.c \
 	$(WEB2C_BUILD_DIR)/xetexdir/image/pngimage.c
 
-libxetex_cc_objects = $(libxetex_cc_sources:.c=.o)
+libxetex_cc_objects := $(libxetex_cc_sources:.c=.o)
 
 $(libxetex_cc_objects): %.o: %.c
 	$(CC) $(CCFLAGS) -c -o $@ $<
 
-libxetex_cpp_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cpp \
+libxetex_cpp_sources := $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cpp \
 	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr.cpp \
 	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXLayoutInterface.cpp \
 	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXOTMath.cpp \
@@ -129,74 +131,74 @@ libxetex_cpp_sources = $(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontInst.cpp \
 	$(WEB2C_BUILD_DIR)/xetexdir/pdfimage.cpp \
 	$(WEB2C_BUILD_DIR)/xetexdir/XeTeXFontMgr_FC.cpp
 
-libxetex_cpp_objects = $(libxetex_cpp_sources:.cpp=.o)
+libxetex_cpp_objects := $(libxetex_cpp_sources:.cpp=.o)
 
 $(libxetex_cpp_objects): %.o: %.cpp
 	$(CXX) $(CCFLAGS) -c -o $@ $<
 
-libxetex_objects = $(libxetex_cc_objects) $(libxetex_cpp_objects)
+libxetex_objects := $(libxetex_cc_objects) $(libxetex_cpp_objects)
 
 harfbuzz:
-	cd $(ROOT_DIR)/source/libs/harfbuzz && emconfigure ./configure
-	cd $(ROOT_DIR)/source/libs/harfbuzz && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/harfbuzz/libharfbuzz.a \
-	   $(ROOT_DIR)/build/libs/harfbuzz/
+	cd $(XETEX_ROOT_DIR)/source/libs/harfbuzz && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/harfbuzz && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/harfbuzz/libharfbuzz.a \
+	   $(XETEX_ROOT_DIR)/build/libs/harfbuzz/
 
 icu:
 	# make native version first
-	cd $(ROOT_DIR)/source/libs/icu && ./configure
-	cd $(ROOT_DIR)/source/libs/icu && make -j 8
+	cd $(XETEX_ROOT_DIR)/source/libs/icu && ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/icu && make -j 8
 
 	# save some native binaries for later use
-	cp -r $(ROOT_DIR)/source/libs/icu/icu-build/bin $(ICU_TEMP_DIR)/
-	cp $(ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
+	cp -r $(XETEX_ROOT_DIR)/source/libs/icu/icu-build/bin $(ICU_TEMP_DIR)/
+	cp $(XETEX_ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
 	   $(ICU_TEMP_DIR)/
-	cd $(ROOT_DIR)/source/libs/icu && make distclean
+	cd $(XETEX_ROOT_DIR)/source/libs/icu && make distclean
 
 	# try to make wasm for the first time
-	cd $(ROOT_DIR)/source/libs/icu && emconfigure ./configure
-	-cd $(ROOT_DIR)/source/libs/icu && emmake make -j 8
+	cd $(XETEX_ROOT_DIR)/source/libs/icu && emconfigure ./configure
+	-cd $(XETEX_ROOT_DIR)/source/libs/icu && emmake make -j 8
 
 	# wasm build would fail and we need the native tools back
 	cp --preserve=mode $(ICU_TEMP_DIR)/bin/* \
-	   $(ROOT_DIR)/source/libs/icu/icu-build/bin
+	   $(XETEX_ROOT_DIR)/source/libs/icu/icu-build/bin
 
 	# make wasm for the second time
-	cd $(ROOT_DIR)/source/libs/icu && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/icu/icu-build/lib/libicuuc.a \
-	   $(ROOT_DIR)/build/libs/icu/icu-build/lib/
-	cp $(ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
-	   $(ROOT_DIR)/build/libs/icu/icu-build/lib/
+	cd $(XETEX_ROOT_DIR)/source/libs/icu && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/icu/icu-build/lib/libicuuc.a \
+	   $(XETEX_ROOT_DIR)/build/libs/icu/icu-build/lib/
+	cp $(XETEX_ROOT_DIR)/source/libs/icu/icu-build/stubdata/libicudata.a \
+	   $(XETEX_ROOT_DIR)/build/libs/icu/icu-build/lib/
 
 kpathsea:
-	cd $(ROOT_DIR)/source/texk/kpathsea && emconfigure ./configure
-	cd $(ROOT_DIR)/source/texk/kpathsea && emmake make -j 8
-	cp $(ROOT_DIR)/source/texk/kpathsea/.libs/libkpathsea.a \
-	   $(ROOT_DIR)/build/texk/kpathsea/.libs
+	cd $(XETEX_ROOT_DIR)/source/texk/kpathsea && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/texk/kpathsea && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/texk/kpathsea/.libs/libkpathsea.a \
+	   $(XETEX_ROOT_DIR)/build/texk/kpathsea/.libs
 
 graphite2:
-	cd $(ROOT_DIR)/source/libs/graphite2 && emconfigure ./configure
-	cd $(ROOT_DIR)/source/libs/graphite2 && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/graphite2/libgraphite2.a \
-	   $(ROOT_DIR)/build/libs/graphite2/
+	cd $(XETEX_ROOT_DIR)/source/libs/graphite2 && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/graphite2 && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/graphite2/libgraphite2.a \
+	   $(XETEX_ROOT_DIR)/build/libs/graphite2/
 
 zlib:
-	cd $(ROOT_DIR)/source/libs/zlib && emconfigure ./configure
-	cd $(ROOT_DIR)/source/libs/zlib && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/zlib/libz.a \
-	   $(ROOT_DIR)/build/libs/zlib/
+	cd $(XETEX_ROOT_DIR)/source/libs/zlib && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/zlib && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/zlib/libz.a \
+	   $(XETEX_ROOT_DIR)/build/libs/zlib/
 
 poppler: zlib
-	cd $(ROOT_DIR)/source/libs/poppler && emconfigure ./configure
-	cd $(ROOT_DIR)/source/libs/poppler && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/poppler/libpoppler.a \
-	   $(ROOT_DIR)/build/libs/poppler/
+	cd $(XETEX_ROOT_DIR)/source/libs/poppler && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/poppler && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/poppler/libpoppler.a \
+	   $(XETEX_ROOT_DIR)/build/libs/poppler/
 
 teckit: zlib
-	cd $(ROOT_DIR)/source/libs/teckit && emconfigure ./configure
-	cd $(ROOT_DIR)/source/libs/teckit && emmake make -j 8
-	cp $(ROOT_DIR)/source/libs/teckit/libTECkit.a \
-	   $(ROOT_DIR)/build/libs/teckit/
+	cd $(XETEX_ROOT_DIR)/source/libs/teckit && emconfigure ./configure
+	cd $(XETEX_ROOT_DIR)/source/libs/teckit && emmake make -j 8
+	cp $(XETEX_ROOT_DIR)/source/libs/teckit/libTECkit.a \
+	   $(XETEX_ROOT_DIR)/build/libs/teckit/
 
 xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
 	# note that the order of `.a` files matters here, namely, if you put
@@ -210,12 +212,12 @@ xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_obj
 	$(libxetex_objects) \
 	$(libmd5_objects) \
 	$(liba_objects) \
-	$(ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
-	$(ROOT_DIR)/build/libs/graphite2/libgraphite2.a \
-	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicuuc.a \
-	$(ROOT_DIR)/build/libs/icu/icu-build/lib/libicudata.a \
-	$(ROOT_DIR)/build/libs/teckit/libTECkit.a \
-	$(ROOT_DIR)/build/libs/poppler/libpoppler.a \
-	$(ROOT_DIR)/build/texk/kpathsea/.libs/libkpathsea.a \
-	$(ROOT_DIR)/../deps/fontconfig-2.13.1/src/.libs/libfontconfig.a \
-	$(ROOT_DIR)/../deps/expat-2.2.6/lib/.libs/libexpat.a
+	$(XETEX_ROOT_DIR)/build/libs/harfbuzz/libharfbuzz.a \
+	$(XETEX_ROOT_DIR)/build/libs/graphite2/libgraphite2.a \
+	$(XETEX_ROOT_DIR)/build/libs/icu/icu-build/lib/libicuuc.a \
+	$(XETEX_ROOT_DIR)/build/libs/icu/icu-build/lib/libicudata.a \
+	$(XETEX_ROOT_DIR)/build/libs/teckit/libTECkit.a \
+	$(XETEX_ROOT_DIR)/build/libs/poppler/libpoppler.a \
+	$(XETEX_ROOT_DIR)/build/texk/kpathsea/.libs/libkpathsea.a \
+	$(DEPS_ROOT_DIR)/fontconfig-2.13.1/src/.libs/libfontconfig.a \
+	$(DEPS_ROOT_DIR)/expat-2.2.6/lib/.libs/libexpat.a

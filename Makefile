@@ -53,6 +53,10 @@ CCFLAGS := $(WFLAGS) \
 ICU_TEMP_DIR := $(shell mktemp -d)
 
 prepare:
+	# build native xetex, this step will generate some code and also build 
+	# some native tools which is needed for wasm build
+	cd xetex && ./build.sh
+
 	# xetex files
 	cp $(WEB2C_SOURCE_DIR)/xetexdir/xetexextra.c $(WEB2C_BUILD_DIR)/xetexdir/
 	cp $(WEB2C_SOURCE_DIR)/synctexdir/synctex.c $(WEB2C_BUILD_DIR)/synctexdir/
@@ -69,6 +73,9 @@ prepare:
 	cp $(WEB2C_SOURCE_DIR)/xetexdir/*.c $(WEB2C_BUILD_DIR)/xetexdir/
 	cp $(WEB2C_SOURCE_DIR)/xetexdir/*.cpp $(WEB2C_BUILD_DIR)/xetexdir/
 	cp -r $(WEB2C_SOURCE_DIR)/xetexdir/image $(WEB2C_BUILD_DIR)/xetexdir/
+
+	# build fontconfig and expat libraries to wasm
+	make -C deps fontconfig
 
 xetex_sources = $(WEB2C_BUILD_DIR)/xetexdir/xetexextra.c \
 	$(WEB2C_BUILD_DIR)/synctexdir/synctex.c \
@@ -138,7 +145,7 @@ $(libxetex_cpp_objects): %.o: %.cpp
 
 libxetex_objects := $(libxetex_cc_objects) $(libxetex_cpp_objects)
 
-harfbuzz:
+harfbuzz: icu graphite2
 	cd $(XETEX_ROOT_DIR)/source/libs/harfbuzz && emconfigure ./configure
 	cd $(XETEX_ROOT_DIR)/source/libs/harfbuzz && emmake make -j 8
 	cp $(XETEX_ROOT_DIR)/source/libs/harfbuzz/libharfbuzz.a \
@@ -200,7 +207,9 @@ teckit: zlib
 	cp $(XETEX_ROOT_DIR)/source/libs/teckit/libTECkit.a \
 	   $(XETEX_ROOT_DIR)/build/libs/teckit/
 
-xetex: prepare $(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects)
+xetex: prepare \
+	$(xetex_objects) $(libmd5_objects) $(liba_objects) $(libxetex_objects) \
+	harfbuzz kpathsea poppler teckit
 	# note that the order of `.a` files matters here, namely, if you put
 	# `lib/lib.a` after `libkpathsea.a`, this command will report an error
 	$(CXX) \

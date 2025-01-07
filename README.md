@@ -1,7 +1,13 @@
 ## XeTeX.wasm
 
+This project is still **WIP**.
+
 This project tries to compile [XeTeX](https://xetex.sourceforge.net/) to
 WebAssembly to make it available on the web.
+
+Preview:
+
+![XeTeX on wasm](./xetex-on-wasm.webp)
 
 Design goals:
 
@@ -10,6 +16,10 @@ Design goals:
       tex files
 - [ ] support modern JavaScript modules
 - [ ] [optional] support Node.js
+
+### How to build
+
+Check [Build.md](./Build.md) and [Makefile](./Makefile) for details.
 
 ### Init xetex repo as a subtree
 
